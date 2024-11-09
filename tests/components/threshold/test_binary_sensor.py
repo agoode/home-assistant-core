@@ -51,6 +51,7 @@ from tests.common import MockConfigEntry
         ([15, 16, 14, 15, "cat"], POSITION_UNKNOWN, STATE_UNKNOWN),
         ([15, 16, 14, 15, "cat", 15], POSITION_BELOW, STATE_OFF),
         ([15, None], POSITION_UNKNOWN, STATE_UNKNOWN),
+        ([16, 15], POSITION_BELOW, STATE_OFF),  # above -> threshold
     ],
 )
 async def test_sensor_upper(
@@ -93,10 +94,11 @@ async def test_sensor_upper(
         ([15], POSITION_ABOVE, STATE_OFF),  # at threshold
         ([15, 16], POSITION_ABOVE, STATE_OFF),
         ([15, 16, 14], POSITION_BELOW, STATE_ON),
-        ([15, 16, 14, 15], POSITION_BELOW, STATE_ON),
+        ([15, 16, 14, 15], POSITION_ABOVE, STATE_OFF),  # below -> threshold
         ([15, 16, 14, 15, "cat"], POSITION_UNKNOWN, STATE_UNKNOWN),
         ([15, 16, 14, 15, "cat", 15], POSITION_ABOVE, STATE_OFF),
         ([15, None], POSITION_UNKNOWN, STATE_UNKNOWN),
+        ([16, 15], POSITION_ABOVE, STATE_OFF),  # above -> threshold
     ],
 )
 async def test_sensor_lower(
@@ -282,6 +284,10 @@ async def test_sensor_lower_hysteresis(
         ([15, 25], POSITION_ABOVE, STATE_OFF),
         # in-range -> below
         ([15, 5], POSITION_BELOW, STATE_OFF),
+        # above -> upper threshold
+        ([25, 20], POSITION_IN_RANGE, STATE_ON),
+        # below -> lower threshold
+        ([5, 10], POSITION_IN_RANGE, STATE_ON),
     ],
 )
 async def test_sensor_in_range_no_hysteresis(
@@ -331,11 +337,11 @@ async def test_sensor_in_range_no_hysteresis(
         ([12, 22, 18, 16], POSITION_IN_RANGE, STATE_ON),
         ([12, 22, 18, 16, 8], POSITION_IN_RANGE, STATE_ON),
         ([12, 22, 18, 16, 8, 7], POSITION_BELOW, STATE_OFF),
-        ([12, 22, 18, 16, 8, 7, 12], POSITION_BELOW, STATE_OFF),
+        ([12, 22, 18, 16, 8, 7, 12], POSITION_IN_RANGE, STATE_ON),
         ([12, 22, 18, 16, 8, 7, 12, 13], POSITION_IN_RANGE, STATE_ON),
         ([12, 22, 18, 16, 8, 7, 12, 13, 22], POSITION_IN_RANGE, STATE_ON),
         ([12, 22, 18, 16, 8, 7, 12, 13, 22, 23], POSITION_ABOVE, STATE_OFF),
-        ([12, 22, 18, 16, 8, 7, 12, 13, 22, 23, 18], POSITION_ABOVE, STATE_OFF),
+        ([12, 22, 18, 16, 8, 7, 12, 13, 22, 23, 18], POSITION_IN_RANGE, STATE_ON),
         ([12, 22, 18, 16, 8, 7, 12, 13, 22, 23, 18, 17], POSITION_IN_RANGE, STATE_ON),
         (
             [12, 22, 18, 16, 8, 7, 12, 13, 22, 23, 18, 17, "cat"],
@@ -348,6 +354,9 @@ async def test_sensor_in_range_no_hysteresis(
             STATE_ON,
         ),
         ([17, None], POSITION_UNKNOWN, STATE_UNKNOWN),
+        ([7, 12], POSITION_IN_RANGE, STATE_ON),  # below -> lower threshold + hysteresis
+        # above -> upper threshold - hysteresis
+        ([23, 18], POSITION_IN_RANGE, STATE_ON),
         # upper threshold -> lower threshold
         ([20, 10], POSITION_IN_RANGE, STATE_ON),
         # in-range -> upper threshold

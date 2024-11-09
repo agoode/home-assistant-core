@@ -267,6 +267,14 @@ class ThresholdSensor(BinarySensorEntity):
             """Determine if the sensor value is above a threshold."""
             return sensor_value > (threshold + self._hysteresis)
 
+        def above_or_equal(sensor_value: float, threshold: float) -> bool:
+            """Determine if the sensor value is at or above a threshold."""
+            return sensor_value >= (threshold + self._hysteresis)
+
+        def below_or_equal(sensor_value: float, threshold: float) -> bool:
+            """Determine if the sensor value is at or below a threshold."""
+            return sensor_value <= (threshold - self._hysteresis)
+
         if self.sensor_value is None:
             self._state_position = POSITION_UNKNOWN
             self._attr_is_on = None
@@ -280,7 +288,7 @@ class ThresholdSensor(BinarySensorEntity):
             if below(self.sensor_value, self._threshold_lower):
                 self._state_position = POSITION_BELOW
                 self._attr_is_on = True
-            elif above(self.sensor_value, self._threshold_lower):
+            elif above_or_equal(self.sensor_value, self._threshold_lower):
                 self._state_position = POSITION_ABOVE
                 self._attr_is_on = False
             return
@@ -295,7 +303,7 @@ class ThresholdSensor(BinarySensorEntity):
             if above(self.sensor_value, self._threshold_upper):
                 self._state_position = POSITION_ABOVE
                 self._attr_is_on = True
-            elif below(self.sensor_value, self._threshold_upper):
+            elif below_or_equal(self.sensor_value, self._threshold_upper):
                 self._state_position = POSITION_BELOW
                 self._attr_is_on = False
             return
@@ -311,9 +319,9 @@ class ThresholdSensor(BinarySensorEntity):
             if above(self.sensor_value, self._threshold_upper):
                 self._state_position = POSITION_ABOVE
                 self._attr_is_on = False
-            elif above(self.sensor_value, self._threshold_lower) and below(
-                self.sensor_value, self._threshold_upper
-            ):
+            elif above_or_equal(
+                self.sensor_value, self._threshold_lower
+            ) and below_or_equal(self.sensor_value, self._threshold_upper):
                 self._state_position = POSITION_IN_RANGE
                 self._attr_is_on = True
             return
